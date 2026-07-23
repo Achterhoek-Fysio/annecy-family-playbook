@@ -152,6 +152,7 @@
       <button class="phTile wide" data-g="live"><span class="ic">🎬</span><span class="tt">Samen live — quizshow</span><span class="ds">Iedereen tegelijk dezelfde vraag, met afteltimer. Eén host.</span></button>
       <button class="phTile" data-g="top10"><span class="ic">⭐</span><span class="tt">Mijn top 10</span><span class="ds">Jouw wensen — zichtbaar voor de familie.</span></button>
       <button class="phTile" data-g="vrijetijd"><span class="ic">🏖️</span><span class="tt">Vrije tijd</span><span class="ds">Wat wil jij doen bij de camping?</span></button>
+      <button class="phTile" data-g="favs"><span class="ic">❤️</span><span class="tt">Wie vindt wat leuk</span><span class="ds">Ieders favorieten uit Activiteiten.</span></button>
     </div>`);
     m.querySelectorAll('.phTile').forEach(b=> b.onclick=()=>open(b.dataset.g));
     view.appendChild(m);
@@ -161,7 +162,7 @@
     const reset=el('<button class="phBtn alt" style="align-self:center;margin-top:2px">⟲ Reset spellen</button>');
     reset.onclick=resetPanel; view.appendChild(reset);
   }
-  function open(g){ ({quiz,bingo,yahtzee,music,live:liveQuiz,top10,vrijetijd,reset:resetPanel}[g]||menu)(); }
+  function open(g){ ({quiz,bingo,yahtzee,music,live:liveQuiz,top10,vrijetijd,favs:favsView,reset:resetPanel}[g]||menu)(); }
   function panel(title,bodyNode){ view.innerHTML=''; const p=el(`<div class="phPanel"><div class="phBar"><button class="phBack">‹ Terug</button><h3>${title}</h3><span></span></div></div>`); p.querySelector('.phBack').onclick=menu; p.appendChild(bodyNode); view.appendChild(p); return p; }
   function joinGate(title){ const body=el('<div><p class="phNote">Doe eerst mee met de familiecode hierboven ⤴ om dit te gebruiken.</p></div>'); panel(title,body); return body; }
 
@@ -380,6 +381,28 @@
     (async()=>{ await loadFam(); renderChips(); })();
   }
 
+  /* ---------- WIE VINDT WAT LEUK (favorieten) ---------- */
+  async function syncFavs(){
+    try{ const a=A(); if(!isJoined()||!a||!a.saveProgress) return;
+      const raw=localStorage.getItem('favs'); const idx=raw?JSON.parse(raw):[];
+      const AA=window.A||[]; const names=idx.map(i=>AA[i]&&AA[i].name).filter(Boolean);
+      await a.saveProgress('favs',{items:names}); refreshProgressPanel();
+    }catch(e){}
+  }
+  async function favsView(){
+    if(!isJoined()) return joinGate('Wie vindt wat leuk');
+    const body=el('<div></div>');
+    body.appendChild(el('<p class="phNote">De hartjes die iedereen bij <b>Activiteiten</b> aantikt, verschijnen hier per persoon.</p>'));
+    const wrap=el('<div></div>'); body.appendChild(wrap);
+    panel('Wie vindt wat leuk ❤️',body);
+    await syncFavs();
+    let rows=[]; try{ rows=await A().loadGroupProgress(); }catch(e){}
+    const favs=rows.filter(r=>r.game_key==='favs' && r.state && Array.isArray(r.state.items) && r.state.items.length);
+    wrap.innerHTML='';
+    if(!favs.length){ wrap.appendChild(el('<p class="phNote">Nog niemand heeft favorieten. Ga naar Activiteiten en tik op een ❤️.</p>')); return; }
+    favs.forEach(r=>{ const st=r.state||{}; const box=el(`<div class="phPanel" style="box-shadow:none;margin-top:8px"><p style="font-weight:700;color:var(--ink);margin:0 0 4px">${esc(st.name||'speler')} — ${(st.items||[]).length} favoriet(en)</p></div>`); (st.items||[]).forEach(it=>box.appendChild(el(`<div class="phNote" style="margin:2px 0">❤️ ${esc(it)}</div>`))); wrap.appendChild(box); });
+  }
+
   /* ---------- RESET ---------- */
   function resetPanel(){
     const body=el('<div></div>');
@@ -486,6 +509,8 @@
     root.appendChild(view);
     const hub=document.getElementById('liveHub'); if(hub&&hub.parentNode)hub.insertAdjacentElement('afterend',root); else games.appendChild(root);
     menu();
+    try{ const of=window.toggleFav; if(of && !of.__wrapped){ const w=function(i){ of(i); setTimeout(syncFavs,60); }; w.__wrapped=true; window.toggleFav=w; } }catch(e){}
+    setTimeout(()=>{ if(isJoined()) syncFavs(); },1800);
     let tries=0; const iv=setInterval(()=>{ tries++; if(isJoined()){ ensureProgSub(); refreshProgressPanel(); } if(tries>40)clearInterval(iv); },1500);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mount,300)); else setTimeout(mount,300);

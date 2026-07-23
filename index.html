@@ -144,13 +144,7 @@
 </div>
 <div class="sectionHead"><h2>📸 Ontdek de regio</h2><span class="small">Tik op een foto</span></div><div class="regionCarousel" id="photos"></div>
 </section>
-<section id="activities" class="screen"><div class="photoPolicy">
-<div class="photoPolicyIcon">📷</div>
-<div><b>Foto’s die kloppen</b><span><strong>Echte locatiefoto</strong> betekent dat het beeld aantoonbaar van die plek is. Bij sportactiviteiten zonder betrouwbare vrije foto gebruiken we bewust een illustratie, met één tik naar actuele bezoekersfoto’s.</span></div>
-</div><div class="riverNotice"><b>🌊 Ook riviertjes toegevoegd</b><span>Eau Morte, Ire, Fier en Chéran staan nu in de app, met wandelingen en begeleide rivieractiviteiten.</span><button onclick="filterGo('Riviertjes')">Bekijk riviertjes</button></div><div class="visualNotice">
-<b>Nieuwe beeldweergave</b>
-<span>V16 toont echte locatiefoto’s op de kaart waar een betrouwbare herbruikbare bron beschikbaar is. Bij overige activiteiten zie je een passende illustratie én altijd een actieve knop naar actuele bezoekersfoto’s.</span>
-</div><div class="sportIntro">
+<section id="activities" class="screen"><div class="sportIntro">
 <h2>Kies voor wie</h2>
 <div class="targetGrid">
 <button onclick="filterGo('Mama & Kids')"><b>👩‍👧‍👦 Mama & Kids</b><span>Strand, water, dorpjes & plezier</span></button>
@@ -275,7 +269,7 @@ function switchScreen(id){document.querySelectorAll('.screen').forEach(x=>x.clas
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>switchScreen(b.dataset.screen));
 function startAdventure(){document.querySelector('.stats').scrollIntoView({behavior:'smooth'})}
 function getList(k){return JSON.parse(localStorage.getItem(k)||'[]')} function setList(k,v){localStorage.setItem(k,JSON.stringify(v))}
-function toggleFav(i){let f=getList('favs');f=f.includes(i)?f.filter(x=>x!==i):[...f,i];setList('favs',f);renderAll()}
+window.A=A;function toggleFav(i){let f=getList('favs');f=f.includes(i)?f.filter(x=>x!==i):[...f,i];setList('favs',f);renderAll()}
 function togglePlan(i){let p=getList('plan');p=p.includes(i)?p.filter(x=>x!==i):[...p,i];setList('plan',p);renderAll()}
 function renderRecs(){let f=getList('favs');recs.innerHTML=A.slice(0,4).map((a,i)=>`<article class="rec"><a target="_blank" rel="noopener" href="${a.infoLink||a.web||a.photosLink}"><img src="${a.img}" alt="${a.name}" onerror="this.onerror=null;this.src='${a.fallbackImg}'"></a><span class="timeBadge">🚗 ${a.time}</span><button class="heart ${f.includes(i)?'on':''}" onclick="toggleFav(${i})">♡</button><div class="recBody"><h3>${a.icon} ${a.name}</h3><span class="small">${a.desc}</span><div style="margin-top:8px"><a class="btn" target="_blank" href="${a.map}">Bekijk</a></div></div></article>`).join('')}
 function renderFilters(){let cats=['Alles','Must-do','Warm weer','Regen','Mama & Kids','Gezin',...new Set(A.map(x=>x.cat))];cats=[...new Set(cats)];filters.innerHTML=cats.map(c=>`<button class="filter ${c===cat&&!favOnly?'on':''}" onclick="cat='${c}';favOnly=false;renderFilters();renderActivities()"><span class="fi">${catIcons[c]||'•'}</span>${c}</button>`).join('')+`<button class="filter favFilter ${favOnly?'on':''}" onclick="favOnly=!favOnly;renderFilters();renderActivities()"><span class="fi">❤️</span>Favorieten</button>`}
