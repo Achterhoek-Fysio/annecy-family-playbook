@@ -44,6 +44,11 @@
   .phWho{font-size:12.5px;color:var(--muted);margin-top:8px}
   .phField{display:flex;gap:8px;align-items:center;margin:10px 0;color:var(--ink)}
   .phField input{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);font-size:15px}
+  .phGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+  .phPhoto{position:relative}
+  .phPhoto img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;background:#eef4f4;display:block}
+  .phPhoto span{position:absolute;left:4px;bottom:4px;font-size:10px;color:#fff;background:rgba(0,0,0,.45);padding:1px 5px;border-radius:6px}
+  .phUpload{display:block;text-align:center;border:2px dashed var(--line);border-radius:14px;padding:16px;color:var(--lake);font-weight:700;cursor:pointer;margin:8px 0}
   `;
 
   const A=()=>window.AnnecyLive||null;
@@ -121,6 +126,7 @@
     {a:"Dua Lipa",t:"Don't Start Now",y:2019,g:"Pop"}
   ];
   const VT_PRESETS=["Spelen bij de camping","Eigen tijd bij de camping","Zwemmen bij de camping","Wandelen","Uitrusten / lezen","Samen een spel doen"];
+  const ALBUMS=[['vos','Fam Vos'],['ketelaar-cardol','Fam Ketelaar / Cardol']];
   const PROG_GAMES=[["quiz","🧠","Familiequiz"],["bingo","🗺️","Vakantiebingo"],["yahtzee","🎲","Yahtzee"],["music","🎵","Hitster"]];
 
   /* ================= module ================= */
@@ -153,6 +159,7 @@
       <button class="phTile" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left" data-g="top10"><span class="ic">⭐</span><span class="tt">Mijn top 10</span><span class="ds">Jouw wensen — zichtbaar voor de familie.</span></button>
       <button class="phTile" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left" data-g="vrijetijd"><span class="ic">🏖️</span><span class="tt">Vrije tijd</span><span class="ds">Wat wil jij doen bij de camping?</span></button>
       <button class="phTile" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left" data-g="favs"><span class="ic">❤️</span><span class="tt">Wie vindt wat leuk</span><span class="ds">Ieders favorieten uit Activiteiten.</span></button>
+      <button class="phTile" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left" data-g="fotos"><span class="ic">📷</span><span class="tt">Fotoalbum</span><span class="ds">Deel foto's · maak een fotoboek.</span></button>
     </div>`);
     m.querySelectorAll('.phTile').forEach(b=> b.onclick=()=>open(b.dataset.g));
     view.appendChild(m);
@@ -162,7 +169,7 @@
     const reset=el('<button class="phBtn alt" style="align-self:center;margin-top:2px">⟲ Reset spellen</button>');
     reset.onclick=resetPanel; view.appendChild(reset);
   }
-  function open(g){ ({quiz,bingo,yahtzee,music,live:liveQuiz,top10,vrijetijd,favs:favsView,reset:resetPanel}[g]||menu)(); }
+  function open(g){ ({quiz,bingo,yahtzee,music,live:liveQuiz,top10,vrijetijd,favs:favsView,fotos:photoAlbum,reset:resetPanel}[g]||menu)(); }
   function panel(title,bodyNode){ view.innerHTML=''; const p=el(`<div class="phPanel"><div class="phBar"><button class="phBack">‹ Terug</button><h3>${title}</h3><span></span></div></div>`); p.querySelector('.phBack').onclick=menu; p.appendChild(bodyNode); view.appendChild(p); return p; }
   function joinGate(title){ const body=el('<div><p class="phNote">Doe eerst mee met de familiecode hierboven ⤴ om dit te gebruiken.</p></div>'); panel(title,body); return body; }
 
@@ -401,6 +408,69 @@
     wrap.innerHTML='';
     if(!favs.length){ wrap.appendChild(el('<p class="phNote">Nog niemand heeft favorieten. Ga naar Activiteiten en tik op een ❤️.</p>')); return; }
     favs.forEach(r=>{ const st=r.state||{}; const box=el(`<div class="phPanel" style="box-shadow:none;margin-top:8px"><p style="font-weight:700;color:var(--ink);margin:0 0 4px">${esc(st.name||'speler')} — ${(st.items||[]).length} favoriet(en)</p></div>`); (st.items||[]).forEach(it=>box.appendChild(el(`<div class="phNote" style="margin:2px 0">❤️ ${esc(it)}</div>`))); wrap.appendChild(box); });
+  }
+
+  /* ---------- FOTOALBUM ---------- */
+  function photoAlbum(){
+    if(!isJoined()) return joinGate('Fotoalbum');
+    const client=lc(), gid=myGroup();
+    if(!client||!gid) return joinGate('Fotoalbum');
+    let album=LS.get('ph_album','vos');
+    const body=el('<div></div>');
+    panel('Fotoalbum 📷',body);
+    const albumName=()=>{ const a=ALBUMS.find(x=>x[0]===album); return a?a[1]:album; };
+    function build(){
+      body.innerHTML='';
+      body.appendChild(el('<p class="phNote">Deel jullie vakantiefoto\'s. Kies een album, upload vanaf je telefoon (camera of galerij). Iedereen ziet ze live. Aan het eind maak je er een fotoboek van om te printen (bijv. bij Albelli of Fotofabriek).</p>'));
+      const tabs=el('<div class="phBtnRow" style="margin-top:8px"></div>');
+      ALBUMS.forEach(([k,label])=>{ const b=el('<button class="phChip '+(k===album?'done':'')+'">'+esc(label)+'</button>'); b.onclick=()=>{ album=k; LS.set('ph_album',k); build(); }; tabs.appendChild(b); });
+      body.appendChild(tabs);
+      const up=el('<label class="phUpload">➕ Foto\'s toevoegen aan '+esc(albumName())+'<input type="file" accept="image/*" capture="environment" multiple style="display:none"></label>');
+      const inp=up.querySelector('input');
+      inp.onchange=async()=>{ const files=Array.from(inp.files||[]); if(!files.length)return; up.textContent='Bezig met uploaden…'; await uploadFiles(files); build(); };
+      body.appendChild(up);
+      const info=el('<p class="phNote" id="phPhotoInfo">Laden…</p>'); body.appendChild(info);
+      const gallery=el('<div class="phGrid" id="phGallery"></div>'); body.appendChild(gallery);
+      const book=el('<button class="phBtn coral" style="margin-top:12px">📕 Maak fotoboek (print / PDF)</button>'); book.onclick=makeBook; body.appendChild(book);
+      body.appendChild(el('<p class="phNote">Printen: sla het fotoboek op als PDF, of upload de foto\'s bij <b>Albelli</b> of <b>Fotofabriek</b> in hun fotoboek-editor.</p>'));
+      loadGallery();
+    }
+    async function uploadFiles(files){
+      for(const file of files){
+        if(!file.type||!file.type.startsWith('image/')) continue;
+        const ext=((file.name||'foto').split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+        const path=gid+'/'+album+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.'+ext;
+        try{
+          const up=await client.storage.from('fotos').upload(path,file,{cacheControl:'3600',upsert:false});
+          if(up.error){ console.error(up.error); toast('Upload mislukt'); continue; }
+          const pub=client.storage.from('fotos').getPublicUrl(path);
+          const url=pub&&pub.data&&pub.data.publicUrl;
+          const pl=A().player;
+          await client.from('photos').insert({ group_id:gid, album:album, path:path, url:url, uploaded_by:myId(), uploader_name:pl&&pl.display_name });
+        }catch(e){ console.error(e); toast('Upload mislukt'); }
+      }
+      toast('Foto\'s toegevoegd 🎉');
+    }
+    async function loadGallery(){
+      const g=document.getElementById('phGallery'), info=document.getElementById('phPhotoInfo');
+      let data=[]; try{ const r=await client.from('photos').select('*').eq('group_id',gid).eq('album',album).order('created_at',{ascending:false}); data=r.data||[]; }catch(e){}
+      if(g) g.innerHTML=data.map(p=>'<div class="phPhoto"><img loading="lazy" src="'+esc(p.url)+'" alt=""><span>'+esc(p.uploader_name||'')+'</span></div>').join('')||'<p class="phNote">Nog geen foto\'s in dit album.</p>';
+      if(info) info.textContent=data.length+" foto('s) in "+albumName();
+    }
+    function makeBook(){
+      (async()=>{
+        let data=[]; try{ const r=await client.from('photos').select('*').eq('group_id',gid).eq('album',album).order('created_at'); data=r.data||[]; }catch(e){}
+        if(!data.length){ toast('Nog geen foto\'s om een boek van te maken'); return; }
+        const title=albumName();
+        const figs=data.map(function(p){ return '<figure><img src="'+p.url+'"><figcaption>'+esc(p.uploader_name||'')+' · '+new Date(p.created_at).toLocaleDateString('nl-NL')+'</figcaption></figure>'; }).join('');
+        const css2='@page{size:A4;margin:10mm}body{font-family:system-ui,sans-serif;color:#0d3550;margin:0}.cover{height:95vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;page-break-after:always}.cover .eb{letter-spacing:3px;color:#0f91a3;font-weight:700}.cover h1{font-size:44px;margin:8px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8mm;padding:6mm}figure{margin:0;page-break-inside:avoid}.grid img{width:100%;height:105mm;object-fit:cover;border-radius:3mm}figcaption{font-size:10px;color:#697983;margin-top:1.5mm}';
+        const html='<html><head><meta charset="utf-8"><title>Fotoboek '+title+'</title><style>'+css2+'</style></head><body><div class="cover"><div class="eb">ANNECY 2026</div><h1>'+title+'</h1><div>Fotoboek · Camping L\'Idéal</div></div><div class="grid">'+figs+'</div><scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},900);};</scr'+'ipt></body></html>';
+        const w=window.open('','_blank'); if(!w){ toast('Sta pop-ups toe voor het fotoboek'); return; } w.document.write(html); w.document.close();
+      })();
+    }
+    build();
+    try{ if(client._phPhotoSub) client.removeChannel(client._phPhotoSub); }catch(e){}
+    try{ client._phPhotoSub=client.channel('photos-'+gid).on('postgres_changes',{event:'*',schema:'public',table:'photos',filter:'group_id=eq.'+gid},()=>loadGallery()).subscribe(); }catch(e){}
   }
 
   /* ---------- RESET ---------- */
