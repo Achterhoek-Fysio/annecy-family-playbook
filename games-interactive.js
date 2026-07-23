@@ -30,6 +30,7 @@
   .phDie.hold{border-color:var(--coral);background:#fff2f1}
   .phSheet{width:100%;border-collapse:collapse;font-size:14px}.phSheet td{border-bottom:1px solid var(--line);padding:7px 6px;color:var(--ink)}
   .phSheet td.v{text-align:right;color:var(--muted);width:64px}.phSheet tr.pick td{cursor:pointer}.phSheet tr.pick:hover td{background:#eef4f4}.phSheet tr.done td.v{color:var(--ink);font-weight:700}
+  .phSheet tr.pick{background:#f3fbfb}.pickPill{display:inline-block;background:var(--lake);color:#fff;padding:4px 11px;border-radius:999px;font-weight:700;font-size:13px;white-space:nowrap}
   .phToast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-weight:700;font-size:14px;box-shadow:var(--shadow);z-index:9999;opacity:0;transition:opacity .2s}
   .phToast.show{opacity:1}
   .phBig{font-size:22px;font-weight:800;color:var(--ink)}.phCenter{text-align:center}
@@ -127,6 +128,7 @@
   ];
   const VT_PRESETS=["Spelen bij de camping","Eigen tijd bij de camping","Zwemmen bij de camping","Wandelen","Uitrusten / lezen","Samen een spel doen"];
   const ALBUMS=[['vos','Fam Vos'],['ketelaar-cardol','Fam Ketelaar / Cardol']];
+  const SPEUR={kids:["Vind een dennenappel","Zoek een steen platter dan je hand","Tel 5 boten op het meer","Vind een gele bloem","Spot een eend of een zwaan","Vind een blad groter dan je hand","Zoek iets roods op de camping","Maak een foto van een berg","Vind een veertje","Hoor een vogel en doe hem na","Vind een tak in de vorm van een Y","Spot een hond die wordt uitgelaten"],volw:["Vind de dichtstbijzijnde boulangerie en noem 1 product","Fotografeer de Voie Verte (fietspad)","Zoek de naam van een berg om je heen","Bestel iets volledig in het Frans","Vind het riviertje de Eau Morte","Spot een paraglider boven het meer","Vind een terras met uitzicht op het meer","Ontdek de Réserve du Bout-du-Lac","Maak een groepsfoto op het strand van Doussard","Zoek uit hoe laat de zon vandaag ondergaat","Proef een lokale kaas of een ijsje","Vind een bord met Lac d Annecy erop"]};
   const PROG_GAMES=[["quiz","🧠","Familiequiz"],["bingo","🗺️","Vakantiebingo"],["yahtzee","🎲","Yahtzee"],["music","🎵","Hitster"]];
 
   /* ================= module ================= */
@@ -160,6 +162,7 @@
       <button class="phTile" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left" data-g="vrijetijd"><span class="ic">🏖️</span><span class="tt">Vrije tijd</span><span class="ds">Wat wil jij doen bij de camping?</span></button>
       <button class="phTile" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left" data-g="favs"><span class="ic">❤️</span><span class="tt">Wie vindt wat leuk</span><span class="ds">Ieders favorieten uit Activiteiten.</span></button>
       <button class="phTile" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left" data-g="fotos"><span class="ic">📷</span><span class="tt">Fotoalbum</span><span class="ds">Deel foto's · maak een fotoboek.</span></button>
+      <button class="phTile" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left" data-g="speur"><span class="ic">🔍</span><span class="tt">Speurtocht</span><span class="ds">Kids & volwassenen · rond de camping.</span></button>
     </div>`);
     m.querySelectorAll('.phTile').forEach(b=> b.onclick=()=>open(b.dataset.g));
     view.appendChild(m);
@@ -169,7 +172,7 @@
     const reset=el('<button class="phBtn alt" style="align-self:center;margin-top:2px">⟲ Reset spellen</button>');
     reset.onclick=resetPanel; view.appendChild(reset);
   }
-  function open(g){ ({quiz,bingo,yahtzee,music,live:liveQuiz,top10,vrijetijd,favs:favsView,fotos:photoAlbum,reset:resetPanel}[g]||menu)(); }
+  function open(g){ ({quiz,bingo,yahtzee,music,live:liveQuiz,top10,vrijetijd,favs:favsView,fotos:photoAlbum,speur:speurtocht,reset:resetPanel}[g]||menu)(); }
   function panel(title,bodyNode){ view.innerHTML=''; const p=el(`<div class="phPanel"><div class="phBar"><button class="phBack">‹ Terug</button><h3>${title}</h3><span></span></div></div>`); p.querySelector('.phBack').onclick=menu; p.appendChild(bodyNode); view.appendChild(p); return p; }
   function joinGate(title){ const body=el('<div><p class="phNote">Doe eerst mee met de familiecode hierboven ⤴ om dit te gebruiken.</p></div>'); panel(title,body); return body; }
 
@@ -238,16 +241,16 @@
     const total=()=>{let t=Object.values(score).reduce((a,b)=>a+(b||0),0);if(upper()>=63)t+=35;return t;};
     const allDone=()=>cats.every(c=>score[c.k]!==undefined);
     const body=el('<div></div>'),dieRow=el('<div class="phDice"></div>'),rollBtn=el('<button class="phBtn coral">Gooien</button>');
-    const rollInfo=el('<p class="phNote phCenter">Druk op “Gooien” om te starten. 3× per beurt; tik dobbelstenen aan om vast te houden.</p>');
+    const rollInfo=el('<p class="phNote phCenter">Druk op “Gooien”. Na een worp: tik dobbelstenen aan om vast te houden, en tik op een <b style="color:var(--lake)">blauw vak</b> in de lijst om die score te kiezen. Zo vul je alle 13 vakken.</p>');
     const table=el('<table class="phSheet"></table>'),totalRow=el('<p class="phBig phCenter" style="margin-top:10px">Totaal: 0</p>');
     const updateTotal=()=>{totalRow.textContent=`Totaal: ${total()} ${upper()>=63?'(incl. +35 bonus)':''}`;};
     function drawDice(){dieRow.innerHTML='';dice.forEach((d,i)=>{const b=el(`<div class="phDie ${hold[i]?'hold':''}">${FACES[d]}</div>`);b.onclick=()=>{if(!started)return;hold[i]=!hold[i];drawDice();};dieRow.appendChild(b);});}
-    function drawTable(){table.innerHTML='';cats.forEach(c=>{const filled=score[c.k]!==undefined;const prev=(started&&!filled)?scoreFor(c.k):(filled?score[c.k]:'');const tr=document.createElement('tr');tr.className=filled?'done':(started?'pick':'');tr.innerHTML=`<td>${c.n}</td><td class="v">${prev===''?'—':prev}</td>`;
+    function drawTable(){table.innerHTML='';cats.forEach(c=>{const filled=score[c.k]!==undefined;const prev=(started&&!filled)?scoreFor(c.k):(filled?score[c.k]:'');const tr=document.createElement('tr');tr.className=filled?'done':(started?'pick':'');const cell=(started&&!filled)?`<span class="pickPill">${prev} \u203a</span>`:(filled?score[c.k]:'—');tr.innerHTML=`<td>${c.n}</td><td class="v">${cell}</td>`;
       if(started&&!filled){tr.onclick=async()=>{score[c.k]=scoreFor(c.k);rolls=0;hold=[false,false,false,false,false];started=false;rollBtn.disabled=false;rollBtn.textContent='Gooien';drawDice();drawTable();updateTotal();
         if(allDone()){const t=total();updateTotal();await recordGame('yahtzee',t,{done:true,score:t},`Klaar! Totaal ${t}`);rollInfo.innerHTML=`<span class="phBig">Klaar! Totaal: ${t}</span><br>Je hoogste totaal telt mee.`;rollBtn.disabled=true;const again=el('<div class="phBtnRow phCenter" style="justify-content:center;margin-top:10px"><button class="phBtn coral">Nog een potje 🔁</button></div>');again.firstElementChild.onclick=()=>yahtzee();body.appendChild(again);}
       };}
       table.appendChild(tr);});}
-    rollBtn.onclick=()=>{if(allDone())return;if(rolls>=3){toast('Kies eerst een vak');return;}started=true;dice=dice.map((d,i)=>hold[i]?d:(1+Math.floor(Math.random()*6)));rolls++;rollInfo.textContent=`Worp ${rolls} van 3 — vasthouden of scoren.`;if(rolls>=3)rollBtn.disabled=true;drawDice();drawTable();};
+    rollBtn.onclick=()=>{if(allDone())return;if(rolls>=3){toast('Kies eerst een vak');return;}started=true;dice=dice.map((d,i)=>hold[i]?d:(1+Math.floor(Math.random()*6)));rolls++;rollInfo.innerHTML=`Worp ${rolls} van 3 — tik dobbelstenen aan om vast te houden, of tik hieronder op een <b style="color:var(--lake)">blauw vak</b> om je score daar vast te leggen.`;if(rolls>=3)rollBtn.disabled=true;drawDice();drawTable();};
     drawDice();drawTable();updateTotal();
     body.appendChild(rollInfo);body.appendChild(dieRow);const br=el('<div class="phBtnRow phCenter" style="justify-content:center"></div>');br.appendChild(rollBtn);body.appendChild(br);body.appendChild(table);body.appendChild(totalRow);
     panel('Yahtzee',body);
@@ -471,6 +474,25 @@
     build();
     try{ if(client._phPhotoSub) client.removeChannel(client._phPhotoSub); }catch(e){}
     try{ client._phPhotoSub=client.channel('photos-'+gid).on('postgres_changes',{event:'*',schema:'public',table:'photos',filter:'group_id=eq.'+gid},()=>loadGallery()).subscribe(); }catch(e){}
+  }
+
+  /* ---------- SPEURTOCHT ---------- */
+  function speurtocht(){
+    const s=LS.get('ph_speur',{done:[]}); if(!Array.isArray(s.done))s.done=[];
+    const total=SPEUR.kids.length+SPEUR.volw.length;
+    const points=()=>s.done.length*5;
+    function persist(){ LS.set('ph_speur',s); recordGame('speurtocht',points(),{done:s.done.length>=total,goed:s.done.length}); }
+    const body=el('<div></div>');
+    function render(){
+      body.innerHTML='';
+      body.appendChild(el("<p class=\"phNote\">Speurtocht rond Camping l'Idéal & Lac d'Annecy. Vink af wat je vindt of doet — elk vakje = 5 punten. Voor jong én oud!</p>"));
+      const mk=(title,items,offset)=>{ body.appendChild(el('<p class="phBig" style="font-size:16px;margin-top:12px">'+title+'</p>')); items.forEach((t,j)=>{ const idx=offset+j; const on=s.done.includes(idx); const b=el('<button class="phOpt '+(on?'good':'')+'">'+(on?'✅ ':'⬜ ')+esc(t)+'</button>'); b.onclick=()=>{ if(s.done.includes(idx))s.done=s.done.filter(n=>n!==idx); else s.done.push(idx); persist(); render(); }; body.appendChild(b); }); };
+      mk('🧒 Voor de kids', SPEUR.kids, 0);
+      mk('🧑 Voor de volwassenen', SPEUR.volw, SPEUR.kids.length);
+      body.appendChild(el('<p class="phNote">'+s.done.length+' van '+total+' gevonden · <span class="phBest">'+points()+' punten</span></p>'));
+      const reset=el('<button class="phBtn alt" style="margin-top:8px">Speurtocht leegmaken</button>'); reset.onclick=()=>{ s.done=[]; LS.set('ph_speur',s); render(); toast('Leeg — je beste blijft staan'); }; body.appendChild(reset);
+    }
+    render(); panel('Speurtocht 🔍',body);
   }
 
   /* ---------- RESET ---------- */

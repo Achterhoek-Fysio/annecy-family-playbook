@@ -26,7 +26,7 @@
 
   window.joinLiveGames = async function(){
     if(!configured){ setMessage('Supabase is nog niet gekoppeld. Volg SUPABASE_SETUP.md.'); return; }
-    const name=$('livePlayerName')?.value.trim(); const code=$('liveGroupCode')?.value.trim().toUpperCase();
+    const name=$('livePlayerName')?.value.trim(); const code=$('liveGroupCode')?.value.replace(/\s+/g,'').toUpperCase();
     if(!name || !code){setMessage('Vul je naam en familiecode in.');return;}
     try{
       setMessage('Bezig met deelnemen…',true); await ensureAuth();
@@ -35,7 +35,7 @@
       const row=Array.isArray(data)?data[0]:data;
       state.player={id:row.player_id,display_name:row.display_name,score:row.score}; state.group={id:row.group_id,name:row.group_name,join_code:row.join_code};
       await activateLive();
-    }catch(err){console.error(err);setMessage(err.message?.includes('Ongeldige')?err.message:'Deelnemen lukte niet. Controleer de code en verbinding.');}
+    }catch(err){console.error(err);setMessage(err.message && /Ongeldige|naam|aangemeld/.test(err.message) ? err.message : 'Deelnemen lukte niet. Controleer de code en de internetverbinding.');}
   };
 
   window.leaveLiveGames = async function(){
@@ -57,7 +57,7 @@
   }
   async function refreshPlayers(){
     if(!state.group) return;
-    const {data,error}=await state.client.from('game_players').select('id,display_name,score,updated_at').eq('group_id',state.group.id).order('score',{ascending:false}).order('display_name');
+    const {data,error}=await state.client.from('game_players').select('id,display_name,score,updated_at,active').eq('group_id',state.group.id).order('active',{ascending:false}).order('score',{ascending:false}).order('display_name');
     if(error){console.error(error);setConnection('Verbinding fout');return;}
     state.players=data||[]; renderLiveScores();
   }
@@ -68,7 +68,8 @@
   function renderLiveScores(){
     if(!state.group){ if(typeof window.renderFamilyScores==='function') window.renderFamilyScores(); return; }
     const h=$('familyScores'); if(!h)return;
-    h.innerHTML=state.players.map((p,i)=>`<div class="scoreRow ${p.id===state.player.id?'me':''}"><b>${i+1}. ${esc(p.display_name)}${p.id===state.player.id?' · jij':''}</b><span>${p.score}</span><button ${p.id===state.player.id?'':'disabled'} onclick="changeLiveScore(-1,'handmatig')">−</button><button ${p.id===state.player.id?'':'disabled'} onclick="changeLiveScore(1,'handmatig')">+</button>${p.id===state.player.id?`<input class="qsIn" type="number" inputmode="numeric" placeholder="±" style="width:54px;margin-left:6px"><button onclick="quickScore(this)">OK</button>`:''}</div>`).join('')||'<p class="small">Nog geen spelers.</p>';
+    h.innerHTML=state.players.map((p,i)=>`<div class="scoreRow ${p.id===state.player.id?'me':''}"><b>${i+1}. <span style="color:${p.active?'#37b26b':'#c7d2cf'}">●</span> ${esc(p.display_name)}${p.id===state.player.id?' · jij':''}${p.active?'':' <span style="font-weight:400;color:#9aa8a4;font-size:11px">(nog niet ingelogd)</span>'}</b><span>${p.score}</span><button onclick="scorePlayer('${p.id}',-1)">−</button><button onclick="scorePlayer('${p.id}',1)">+</button><input class="qsIn" type="number" inputmode="numeric" placeholder="±" data-pid="${p.id}" style="width:50px;margin-left:6px"><button onclick="quickScore(this)">OK</button></div>`).join('')||'<p class="small">Nog geen spelers.</p>';
+    h.insertAdjacentHTML('beforeend','<button class="secondaryBtn" style="margin-top:8px" onclick="addManualPlayer()">+ Speler toevoegen (zonder telefoon)</button>');
   }
   window.changeLiveScore = async function(delta,reason='spel'){
     if(!state.player){setMessage('Doe eerst mee met de familiegroep.');return false;}
@@ -77,7 +78,9 @@
   };
 
   // Bestaande spellen koppelen aan de live score, met lokale fallback.
-  window.quickScore=async function(btn){ const inp=btn&&btn.previousElementSibling; if(!inp)return; const n=parseInt(inp.value,10); if(!n){return;} inp.value=''; await window.changeLiveScore(Math.max(-100,Math.min(100,n)),'handmatig'); };
+  window.scorePlayer=async function(pid,delta){ if(!state.client)return; const {error}=await state.client.rpc('award_points',{p_player_id:pid,p_points:delta,p_reason:'handmatig'}); if(error){console.error(error);setConnection('Score niet opgeslagen');} else await refreshPlayers(); };
+  window.quickScore=async function(btn){ const inp=btn&&btn.previousElementSibling; if(!inp)return; const n=parseInt(inp.value,10); if(!n){return;} const pid=inp.getAttribute('data-pid'); inp.value=''; if(!pid||!state.client)return; const {error}=await state.client.rpc('award_points',{p_player_id:pid,p_points:Math.max(-100,Math.min(100,n)),p_reason:'handmatig'}); if(error){console.error(error);} else await refreshPlayers(); };
+  window.addManualPlayer=async function(){ const name=prompt('Naam van de speler (bijv. een kind zonder telefoon):'); if(!name||!name.trim())return; const {error}=await state.client.rpc('add_manual_player',{p_name:name.trim()}); if(error){alert(error.message||'Toevoegen lukte niet');return;} await refreshPlayers(); };
   const originalToggleBingo=window.toggleBingo;
   window.toggleBingo=async function(i){
     const before=getList('bingo').includes(i); originalToggleBingo(i);
