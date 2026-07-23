@@ -1,4 +1,4 @@
-/* Annecy Family Playbook — spellen, live quizshow, muziek (Hitster),
+/* Annecy Family Playbook — spellen, live quizshow, Hitster (muziek),
    familie top-10, vrije tijd, en reset. Beste-telt scoremodel + live voortgang. */
 (() => {
   "use strict";
@@ -9,9 +9,9 @@
   .phMenu{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
   .phTile{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:16px;padding:14px;text-align:left;box-shadow:var(--shadow);transition:transform .12s}
   .phTile:hover{transform:translateY(-2px)}
-  .phTile .ic{font-size:26px}.phTile h4{margin:6px 0 2px;color:var(--ink);font-size:16px}.phTile p{margin:0;color:var(--muted);font-size:12.5px}
+  .phTile .ic{display:block;font-size:26px;line-height:1.1}.phTile .tt{display:block;margin:6px 0 2px;color:var(--ink);font-size:16px;font-weight:700}.phTile .ds{display:block;margin:0;color:var(--muted);font-size:12.5px;line-height:1.3}
   .phTile.wide{grid-column:1/-1;background:linear-gradient(120deg,var(--lake),var(--ink));border:none}
-  .phTile.wide h4,.phTile.wide p{color:#fff}
+  .phTile.wide .tt,.phTile.wide .ds{color:#fff}
   .phPanel{border:1px solid var(--line);background:var(--card);border-radius:18px;padding:16px;box-shadow:var(--shadow)}
   .phBar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.phBar h3{margin:0;color:var(--ink);font-size:18px}
   .phBtn{cursor:pointer;border:none;border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px;background:var(--lake);color:#fff;text-decoration:none;display:inline-block}
@@ -94,22 +94,34 @@
   const BINGO_POOL=["Een stokbrood gespot","Een boot op het meer","Franse vlag gezien","Een koe met bel","IJsje gegeten","Iemand zei 'bonjour'","Bergtop met sneeuw","Een fietser voorbij","Croissant ontbijt","Zwemmen in het meer","Een kasteel gezien","Markt bezocht","Paraglider in de lucht","Franse plaat '74'","Picknick gedaan","Zonsondergang gezien","Een geit of ezel","Zwaan op het meer","Kabelbaan of gondel","Franse bakkerij binnen","Kerktoren gespot","Een tunnel doorgereden","Iemand at slakken/kikker","Bergbeekje of waterval","Fontein gezien","Iemand sprak Frans terug","Wijngaard of druiven","Zeilboot met vlag"];
   const LINES=[[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15],[0,4,8,12],[1,5,9,13],[2,6,10,14],[3,7,11,15],[0,5,10,15],[3,6,9,12]];
   const SONGS=[
-    {a:"Queen",t:"Bohemian Rhapsody",y:1975,g:"Rock"},{a:"ABBA",t:"Dancing Queen",y:1976,g:"Disco/Pop"},
-    {a:"Village People",t:"Y.M.C.A.",y:1978,g:"Disco"},{a:"Michael Jackson",t:"Billie Jean",y:1983,g:"Pop"},
-    {a:"Michael Jackson",t:"Thriller",y:1982,g:"Pop"},{a:"Toto",t:"Africa",y:1982,g:"Pop/Rock"},
-    {a:"Survivor",t:"Eye of the Tiger",y:1982,g:"Rock"},{a:"a-ha",t:"Take On Me",y:1985,g:"Pop"},
+    {a:"Bill Withers",t:"Ain't No Sunshine",y:1971,g:"Soul"},{a:"Queen",t:"Bohemian Rhapsody",y:1975,g:"Rock"},
+    {a:"ABBA",t:"Dancing Queen",y:1976,g:"Disco/Pop"},{a:"Bee Gees",t:"Stayin' Alive",y:1977,g:"Disco"},
+    {a:"Village People",t:"Y.M.C.A.",y:1978,g:"Disco"},{a:"André Hazes",t:"Zij gelooft in mij",y:1981,g:"Nederlands"},
+    {a:"Journey",t:"Don't Stop Believin'",y:1981,g:"Rock"},{a:"Michael Jackson",t:"Thriller",y:1982,g:"Pop"},
+    {a:"Toto",t:"Africa",y:1982,g:"Pop/Rock"},{a:"Survivor",t:"Eye of the Tiger",y:1982,g:"Rock"},
+    {a:"Michael Jackson",t:"Billie Jean",y:1983,g:"Pop"},{a:"The Police",t:"Every Breath You Take",y:1983,g:"Pop/Rock"},
+    {a:"Wham!",t:"Last Christmas",y:1984,g:"Pop"},{a:"a-ha",t:"Take On Me",y:1985,g:"Pop"},
     {a:"Europe",t:"The Final Countdown",y:1986,g:"Rock"},{a:"Bon Jovi",t:"Livin' on a Prayer",y:1986,g:"Rock"},
-    {a:"Whitney Houston",t:"I Wanna Dance with Somebody",y:1987,g:"Pop"},{a:"Wham!",t:"Last Christmas",y:1984,g:"Pop"},
-    {a:"Nirvana",t:"Smells Like Teen Spirit",y:1991,g:"Rock/Grunge"},{a:"Los del Río",t:"Macarena",y:1995,g:"Dance/Latin"},
-    {a:"Spice Girls",t:"Wannabe",y:1996,g:"Pop"},{a:"Britney Spears",t:"...Baby One More Time",y:1998,g:"Pop"},
-    {a:"Eminem",t:"Lose Yourself",y:2002,g:"Hiphop"},{a:"Coldplay",t:"Viva la Vida",y:2008,g:"Pop/Rock"},
-    {a:"Lady Gaga",t:"Poker Face",y:2008,g:"Pop"},{a:"Stromae",t:"Alors on danse",y:2009,g:"Dance (Frans)"},
-    {a:"Adele",t:"Rolling in the Deep",y:2010,g:"Pop/Soul"},{a:"Daft Punk",t:"Get Lucky",y:2013,g:"Disco/Dance"},
-    {a:"Pharrell Williams",t:"Happy",y:2013,g:"Pop"},{a:"Ed Sheeran",t:"Shape of You",y:2017,g:"Pop"},
-    {a:"Luis Fonsi",t:"Despacito",y:2017,g:"Latin/Pop"},{a:"The Weeknd",t:"Blinding Lights",y:2019,g:"Pop/Synth"}
+    {a:"Guns N' Roses",t:"Sweet Child o' Mine",y:1987,g:"Rock"},{a:"Whitney Houston",t:"I Wanna Dance with Somebody",y:1987,g:"Pop"},
+    {a:"Madonna",t:"Like a Prayer",y:1989,g:"Pop"},{a:"Nirvana",t:"Smells Like Teen Spirit",y:1991,g:"Rock/Grunge"},
+    {a:"Marco Borsato",t:"Dromen zijn bedrog",y:1994,g:"Nederlands"},{a:"Los del Río",t:"Macarena",y:1995,g:"Dance/Latin"},
+    {a:"Guus Meeuwis",t:"Het is een nacht",y:1995,g:"Nederlands"},{a:"Spice Girls",t:"Wannabe",y:1996,g:"Pop"},
+    {a:"Britney Spears",t:"...Baby One More Time",y:1998,g:"Pop"},{a:"Backstreet Boys",t:"I Want It That Way",y:1999,g:"Pop"},
+    {a:"Daft Punk",t:"One More Time",y:2000,g:"Dance"},{a:"Destiny's Child",t:"Survivor",y:2001,g:"Pop/R&B"},
+    {a:"Eminem",t:"Lose Yourself",y:2002,g:"Hiphop"},{a:"OutKast",t:"Hey Ya!",y:2003,g:"Pop/Hiphop"},
+    {a:"Rihanna",t:"Umbrella",y:2007,g:"Pop"},{a:"Coldplay",t:"Viva la Vida",y:2008,g:"Pop/Rock"},
+    {a:"Lady Gaga",t:"Poker Face",y:2008,g:"Pop"},{a:"Black Eyed Peas",t:"I Gotta Feeling",y:2009,g:"Pop/Dance"},
+    {a:"Stromae",t:"Alors on danse",y:2009,g:"Dance (Frans)"},{a:"Adele",t:"Rolling in the Deep",y:2010,g:"Pop/Soul"},
+    {a:"David Guetta ft. Sia",t:"Titanium",y:2011,g:"Dance"},{a:"Passenger",t:"Let Her Go",y:2012,g:"Pop/Folk"},
+    {a:"Daft Punk",t:"Get Lucky",y:2013,g:"Disco/Dance"},{a:"Pharrell Williams",t:"Happy",y:2013,g:"Pop"},
+    {a:"Avicii",t:"Wake Me Up",y:2013,g:"Dance"},{a:"Stromae",t:"Papaoutai",y:2013,g:"Pop (Frans)"},
+    {a:"Katy Perry",t:"Roar",y:2013,g:"Pop"},{a:"Mark Ronson ft. Bruno Mars",t:"Uptown Funk",y:2014,g:"Funk/Pop"},
+    {a:"Indila",t:"Dernière danse",y:2014,g:"Pop (Frans)"},{a:"Ed Sheeran",t:"Shape of You",y:2017,g:"Pop"},
+    {a:"Luis Fonsi",t:"Despacito",y:2017,g:"Latin/Pop"},{a:"The Weeknd",t:"Blinding Lights",y:2019,g:"Pop/Synth"},
+    {a:"Dua Lipa",t:"Don't Start Now",y:2019,g:"Pop"}
   ];
   const VT_PRESETS=["Spelen bij de camping","Eigen tijd bij de camping","Zwemmen bij de camping","Wandelen","Uitrusten / lezen","Samen een spel doen"];
-  const PROG_GAMES=[["quiz","🧠","Familiequiz"],["bingo","🗺️","Vakantiebingo"],["yahtzee","🎲","Yahtzee"]];
+  const PROG_GAMES=[["quiz","🧠","Familiequiz"],["bingo","🗺️","Vakantiebingo"],["yahtzee","🎲","Yahtzee"],["music","🎵","Hitster"]];
 
   /* ================= module ================= */
   let root, view, progSub=null;
@@ -133,13 +145,13 @@
   function menu(){
     view.innerHTML='';
     const m=el(`<div class="phMenu">
-      <button class="phTile" data-g="quiz"><div class="ic">🧠</div><h4>Familiequiz</h4><p>Herspeelbaar · beste ronde telt.</p></button>
-      <button class="phTile" data-g="bingo"><div class="ic">🗺️</div><h4>Vakantiebingo</h4><p>Tik af wat je onderweg ziet.</p></button>
-      <button class="phTile" data-g="yahtzee"><div class="ic">🎲</div><h4>Yahtzee</h4><p>Herspeelbaar · hoogste totaal telt.</p></button>
-      <button class="phTile" data-g="music"><div class="ic">🎵</div><h4>Muziek — raad het nummer</h4><p>Eén telefoon · speel & raad, met antwoord.</p></button>
-      <button class="phTile wide" data-g="live"><div class="ic">🎬</div><h4>Samen live — quizshow</h4><p>Iedereen tegelijk dezelfde vraag, met afteltimer. Eén host.</p></button>
-      <button class="phTile" data-g="top10"><div class="ic">⭐</div><h4>Mijn top 10</h4><p>Jouw wensen — zichtbaar voor de familie.</p></button>
-      <button class="phTile" data-g="vrijetijd"><div class="ic">🏖️</div><h4>Vrije tijd</h4><p>Wat wil jij doen bij de camping?</p></button>
+      <button class="phTile" data-g="quiz"><span class="ic">🧠</span><span class="tt">Familiequiz</span><span class="ds">Herspeelbaar · beste ronde telt.</span></button>
+      <button class="phTile" data-g="bingo"><span class="ic">🗺️</span><span class="tt">Vakantiebingo</span><span class="ds">Tik af wat je onderweg ziet.</span></button>
+      <button class="phTile" data-g="yahtzee"><span class="ic">🎲</span><span class="tt">Yahtzee</span><span class="ds">Herspeelbaar · hoogste totaal telt.</span></button>
+      <button class="phTile" data-g="music"><span class="ic">🎵</span><span class="tt">Hitster — muziek</span><span class="ds">Raad het jaar · zelf of samen.</span></button>
+      <button class="phTile wide" data-g="live"><span class="ic">🎬</span><span class="tt">Samen live — quizshow</span><span class="ds">Iedereen tegelijk dezelfde vraag, met afteltimer. Eén host.</span></button>
+      <button class="phTile" data-g="top10"><span class="ic">⭐</span><span class="tt">Mijn top 10</span><span class="ds">Jouw wensen — zichtbaar voor de familie.</span></button>
+      <button class="phTile" data-g="vrijetijd"><span class="ic">🏖️</span><span class="tt">Vrije tijd</span><span class="ds">Wat wil jij doen bij de camping?</span></button>
     </div>`);
     m.querySelectorAll('.phTile').forEach(b=> b.onclick=()=>open(b.dataset.g));
     view.appendChild(m);
@@ -233,8 +245,46 @@
     panel('Yahtzee',body);
   }
 
-  /* ---------- MUZIEK — raad het nummer (1 telefoon) ---------- */
+  /* ---------- HITSTER — muziek ---------- */
+  function yearOptions(correct){ const s=new Set([correct]); let guard=0; while(s.size<4 && guard++<50){ const d=correct+(Math.floor(Math.random()*13)-6); if(d>=1965&&d<=2025&&d!==correct) s.add(d); } return shuffle([...s]); }
   function music(){
+    const body=el('<div></div>');
+    body.appendChild(el('<p class="phNote">Kies hoe je Hitster speelt:</p>'));
+    const solo=el('<button class="phTile" style="width:100%;margin:6px 0"><span class="ic">🎧</span><span class="tt">Zelf spelen — telt mee</span><span class="ds">Op je eigen telefoon: beluister en raad het jaar uit 4 opties. Je beste ronde telt mee in de familiestand.</span></button>');
+    const party=el('<button class="phTile" style="width:100%;margin:6px 0"><span class="ic">👥</span><span class="tt">Samen met 1 telefoon</span><span class="ds">Spelleider speelt het nummer voor de groep, de rest raadt hardop. Party-modus, geen punten.</span></button>');
+    solo.onclick=musicSolo; party.onclick=musicParty;
+    body.appendChild(solo); body.appendChild(party);
+    panel('Hitster — muziek 🎵',body);
+  }
+  function musicSolo(){
+    const body=el('<div></div>');
+    let deck=shuffle(SONGS).slice(0,8), i=0, correct=0, answered=false;
+    function render(){
+      if(i>=deck.length){
+        const pts=correct*10;
+        recordGame('music',pts,{done:true,goed:correct},`Ronde klaar: ${correct}/${deck.length} goed`);
+        body.innerHTML=`<div class="phCenter"><p class="phBig">${correct}/${deck.length} goed 🎉</p><p class="phNote">Deze ronde = <span class="phBest">${pts} punten</span>. Je beste ronde telt mee.</p></div>`;
+        const row=el('<div class="phBtnRow phCenter" style="justify-content:center;margin-top:12px"></div>');
+        const again=el('<button class="phBtn coral">Nog een ronde 🔁</button>'); again.onclick=()=>{ deck=shuffle(SONGS).slice(0,8); i=0; correct=0; answered=false; render(); };
+        const back=el('<button class="phBtn alt">Terug</button>'); back.onclick=music;
+        row.appendChild(again); row.appendChild(back); body.appendChild(row); return;
+      }
+      const song=deck[i]; answered=false;
+      const sp='https://open.spotify.com/search/'+encodeURIComponent(song.a+' '+song.t);
+      body.innerHTML=`<p class="phNote">Nummer ${i+1} / ${deck.length} · ${correct} goed</p><p class="phQ">Beluister en raad: in welk JAAR kwam dit nummer uit?</p>`;
+      const rr=el('<div class="phBtnRow" style="margin-bottom:4px"></div>'); rr.appendChild(el(`<a class="phBtn coral" target="_blank" rel="noopener" href="${sp}">▶ Speel op Spotify</a>`)); body.appendChild(rr);
+      const opts=el('<div></div>');
+      yearOptions(song.y).forEach(yr=>{ const b=el(`<button class="phOpt">${yr}</button>`);
+        b.onclick=()=>{ if(answered)return; answered=true; opts.querySelectorAll('.phOpt').forEach(x=>{x.disabled=true; if(Number(x.textContent)===song.y)x.classList.add('good');}); const ok=yr===song.y; if(!ok)b.classList.add('bad'); if(ok)correct++;
+          reveal.innerHTML=`<b>${esc(song.a)} — ${esc(song.t)}</b> · ${song.y} · ${esc(song.g)}`; next.disabled=false; };
+        opts.appendChild(b); });
+      body.appendChild(opts);
+      const reveal=el('<p class="phNote"></p>'); body.appendChild(reveal);
+      const next=el('<button class="phBtn" style="margin-top:8px" disabled>Volgend nummer ›</button>'); next.onclick=()=>{ i++; render(); }; body.appendChild(next);
+    }
+    render(); panel('Hitster — zelf spelen 🎧',body);
+  }
+  function musicParty(){
     const body=el('<div></div>');
     let song=null,qtype=null,revealed=false,goed=LS.get('ph_music_goed',0);
     const QTYPES=[['jaar','In welk JAAR kwam dit nummer uit?'],['genre','Wat is het GENRE?'],['artiest','Welke ARTIEST is dit?'],['titel','Wat is de TITEL van dit nummer?']];
@@ -261,7 +311,7 @@
       }
       body.appendChild(el(counterEl()));
     }
-    render(); panel('Muziek — raad het nummer 🎵',body);
+    render(); panel('Hitster — samen 👥',body);
   }
 
   /* ---------- MIJN TOP 10 ---------- */
@@ -325,7 +375,7 @@
   function resetPanel(){
     const body=el('<div></div>');
     body.appendChild(el('<p class="phNote">Kies wat je opnieuw wilt beginnen. Dit wist <b>jouw</b> voortgang én je punten van dat spel uit de familiestand (alleen van jou, niet van anderen).</p>'));
-    const games=[['quiz','🧠 Familiequiz'],['bingo','🗺️ Vakantiebingo'],['yahtzee','🎲 Yahtzee'],['music','🎵 Muziek (teller)'],['all','⟲ Alles resetten']];
+    const games=[['quiz','🧠 Familiequiz'],['bingo','🗺️ Vakantiebingo'],['yahtzee','🎲 Yahtzee'],['music','🎵 Hitster'],['all','⟲ Alles resetten']];
     games.forEach(([k,label])=>{
       const b=el(`<button class="phBtn alt" style="display:block;width:100%;text-align:left;margin:6px 0">${label}</button>`);
       b.onclick=async()=>{
