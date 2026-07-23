@@ -145,14 +145,14 @@
   function menu(){
     view.innerHTML='';
     const m=el(`<div class="phMenu">
-      <button class="phTile" data-g="quiz"><span class="ic">🧠</span><span class="tt">Familiequiz</span><span class="ds">Herspeelbaar · beste ronde telt.</span></button>
-      <button class="phTile" data-g="bingo"><span class="ic">🗺️</span><span class="tt">Vakantiebingo</span><span class="ds">Tik af wat je onderweg ziet.</span></button>
-      <button class="phTile" data-g="yahtzee"><span class="ic">🎲</span><span class="tt">Yahtzee</span><span class="ds">Herspeelbaar · hoogste totaal telt.</span></button>
-      <button class="phTile" data-g="music"><span class="ic">🎵</span><span class="tt">Hitster — muziek</span><span class="ds">Raad het jaar · zelf of samen.</span></button>
-      <button class="phTile wide" data-g="live"><span class="ic">🎬</span><span class="tt">Samen live — quizshow</span><span class="ds">Iedereen tegelijk dezelfde vraag, met afteltimer. Eén host.</span></button>
-      <button class="phTile" data-g="top10"><span class="ic">⭐</span><span class="tt">Mijn top 10</span><span class="ds">Jouw wensen — zichtbaar voor de familie.</span></button>
-      <button class="phTile" data-g="vrijetijd"><span class="ic">🏖️</span><span class="tt">Vrije tijd</span><span class="ds">Wat wil jij doen bij de camping?</span></button>
-      <button class="phTile" data-g="favs"><span class="ic">❤️</span><span class="tt">Wie vindt wat leuk</span><span class="ds">Ieders favorieten uit Activiteiten.</span></button>
+      <button class="phTile" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left" data-g="quiz"><span class="ic">🧠</span><span class="tt">Familiequiz</span><span class="ds">Herspeelbaar · beste ronde telt.</span></button>
+      <button class="phTile" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left" data-g="bingo"><span class="ic">🗺️</span><span class="tt">Vakantiebingo</span><span class="ds">Tik af wat je onderweg ziet.</span></button>
+      <button class="phTile" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left" data-g="yahtzee"><span class="ic">🎲</span><span class="tt">Yahtzee</span><span class="ds">Herspeelbaar · hoogste totaal telt.</span></button>
+      <button class="phTile" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left" data-g="music"><span class="ic">🎵</span><span class="tt">Hitster — muziek</span><span class="ds">Raad het jaar · zelf of samen.</span></button>
+      <button class="phTile wide" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left" data-g="live"><span class="ic">🎬</span><span class="tt">Samen live — quizshow</span><span class="ds">Iedereen tegelijk dezelfde vraag, met afteltimer. Eén host.</span></button>
+      <button class="phTile" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left" data-g="top10"><span class="ic">⭐</span><span class="tt">Mijn top 10</span><span class="ds">Jouw wensen — zichtbaar voor de familie.</span></button>
+      <button class="phTile" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left" data-g="vrijetijd"><span class="ic">🏖️</span><span class="tt">Vrije tijd</span><span class="ds">Wat wil jij doen bij de camping?</span></button>
+      <button class="phTile" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left" data-g="favs"><span class="ic">❤️</span><span class="tt">Wie vindt wat leuk</span><span class="ds">Ieders favorieten uit Activiteiten.</span></button>
     </div>`);
     m.querySelectorAll('.phTile').forEach(b=> b.onclick=()=>open(b.dataset.g));
     view.appendChild(m);
@@ -251,8 +251,8 @@
   function music(){
     const body=el('<div></div>');
     body.appendChild(el('<p class="phNote">Kies hoe je Hitster speelt:</p>'));
-    const solo=el('<button class="phTile" style="width:100%;margin:6px 0"><span class="ic">🎧</span><span class="tt">Zelf spelen — telt mee</span><span class="ds">Op je eigen telefoon: beluister en raad het jaar uit 4 opties. Je beste ronde telt mee in de familiestand.</span></button>');
-    const party=el('<button class="phTile" style="width:100%;margin:6px 0"><span class="ic">👥</span><span class="tt">Samen met 1 telefoon</span><span class="ds">Spelleider speelt het nummer voor de groep, de rest raadt hardop. Party-modus, geen punten.</span></button>');
+    const solo=el('<button class="phTile" style="width:100%;margin:6px 0;display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left"><span class="ic">🎧</span><span class="tt">Zelf spelen — telt mee</span><span class="ds">Op je eigen telefoon: beluister en raad het jaar uit 4 opties. Je beste ronde telt mee in de familiestand.</span></button>');
+    const party=el('<button class="phTile" style="width:100%;margin:6px 0;display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left"><span class="ic">👥</span><span class="tt">Samen met 1 telefoon</span><span class="ds">Spelleider speelt het nummer voor de groep, de rest raadt hardop. Party-modus, geen punten.</span></button>');
     solo.onclick=musicSolo; party.onclick=musicParty;
     body.appendChild(solo); body.appendChild(party);
     panel('Hitster — muziek 🎵',body);
