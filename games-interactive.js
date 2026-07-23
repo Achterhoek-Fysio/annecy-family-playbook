@@ -287,6 +287,7 @@
   function musicParty(){
     const body=el('<div></div>');
     let song=null,qtype=null,revealed=false,goed=LS.get('ph_music_goed',0);
+    let players=[]; (async()=>{ try{ const a=A(); if(isJoined()&&a&&a.loadPlayers) players=await a.loadPlayers(); }catch(e){} })();
     const QTYPES=[['jaar','In welk JAAR kwam dit nummer uit?'],['genre','Wat is het GENRE?'],['artiest','Welke ARTIEST is dit?'],['titel','Wat is de TITEL van dit nummer?']];
     function nextSong(){ song=SONGS[Math.floor(Math.random()*SONGS.length)]; qtype=QTYPES[Math.floor(Math.random()*QTYPES.length)]; revealed=false; render(); }
     function counterEl(){ return `<p class="phNote phCenter" id="mCount">Goed geraden deze sessie: <b>${goed}</b></p>`; }
@@ -304,10 +305,18 @@
       if(!revealed){ const r=el('<button class="phBtn" style="margin-top:6px">Toon antwoord</button>'); r.onclick=()=>{revealed=true;render();}; body.appendChild(r); }
       else{
         body.appendChild(el(`<div class="phPanel" style="margin-top:8px;box-shadow:none"><p class="phBig" style="font-size:18px">${esc(song.a)} — ${esc(song.t)}</p><p class="phNote">Jaar: <b>${song.y}</b> · Genre: <b>${esc(song.g)}</b></p></div>`));
-        const row=el('<div class="phBtnRow" style="margin-top:8px"></div>');
-        const good=el('<button class="phBtn alt">Goed geraden ✓</button>'); good.onclick=()=>{ goed++; LS.set('ph_music_goed',goed); const c=document.getElementById('mCount'); if(c)c.innerHTML=`Goed geraden deze sessie: <b>${goed}</b>`; };
-        const nx=el('<button class="phBtn coral">Volgend nummer ›</button>'); nx.onclick=nextSong;
-        row.appendChild(good); row.appendChild(nx); body.appendChild(row);
+        if(players.length){
+          body.appendChild(el('<p class="phNote">Wie had het goed? Tik de naam aan (+10 punten):</p>'));
+          const pr=el('<div class="phChips" style="margin-top:4px"></div>');
+          players.forEach(pl=>{ const b=el(`<button class="phChip">${esc(pl.display_name)}</button>`); b.onclick=async()=>{ pr.querySelectorAll('button').forEach(x=>x.disabled=true); try{ await A().awardPoints(pl.id,10,'hitster'); }catch(e){} goed++; LS.set('ph_music_goed',goed); toast('+10 voor '+pl.display_name+' 🎉'); refreshProgressPanel(); nextSong(); }; pr.appendChild(b); });
+          body.appendChild(pr);
+          const skip=el('<button class="phBtn alt" style="margin-top:8px">Niemand · volgend nummer ›</button>'); skip.onclick=nextSong; body.appendChild(skip);
+        } else {
+          const row=el('<div class="phBtnRow" style="margin-top:8px"></div>');
+          const good=el('<button class="phBtn alt">Goed geraden ✓</button>'); good.onclick=()=>{ goed++; LS.set('ph_music_goed',goed); const c=document.getElementById('mCount'); if(c)c.innerHTML=`Goed geraden deze sessie: <b>${goed}</b>`; };
+          const nx=el('<button class="phBtn coral">Volgend nummer ›</button>'); nx.onclick=nextSong;
+          row.appendChild(good); row.appendChild(nx); body.appendChild(row);
+        }
       }
       body.appendChild(el(counterEl()));
     }

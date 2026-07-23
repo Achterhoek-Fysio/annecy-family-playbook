@@ -68,7 +68,7 @@
   function renderLiveScores(){
     if(!state.group){ if(typeof window.renderFamilyScores==='function') window.renderFamilyScores(); return; }
     const h=$('familyScores'); if(!h)return;
-    h.innerHTML=state.players.map((p,i)=>`<div class="scoreRow ${p.id===state.player.id?'me':''}"><b>${i+1}. ${esc(p.display_name)}${p.id===state.player.id?' · jij':''}</b><span>${p.score}</span><button ${p.id===state.player.id?'':'disabled'} onclick="changeLiveScore(-1,'handmatig')">−</button><button ${p.id===state.player.id?'':'disabled'} onclick="changeLiveScore(1,'handmatig')">+</button></div>`).join('')||'<p class="small">Nog geen spelers.</p>';
+    h.innerHTML=state.players.map((p,i)=>`<div class="scoreRow ${p.id===state.player.id?'me':''}"><b>${i+1}. ${esc(p.display_name)}${p.id===state.player.id?' · jij':''}</b><span>${p.score}</span><button ${p.id===state.player.id?'':'disabled'} onclick="changeLiveScore(-1,'handmatig')">−</button><button ${p.id===state.player.id?'':'disabled'} onclick="changeLiveScore(1,'handmatig')">+</button>${p.id===state.player.id?`<input class="qsIn" type="number" inputmode="numeric" placeholder="±" style="width:54px;margin-left:6px"><button onclick="quickScore(this)">OK</button>`:''}</div>`).join('')||'<p class="small">Nog geen spelers.</p>';
   }
   window.changeLiveScore = async function(delta,reason='spel'){
     if(!state.player){setMessage('Doe eerst mee met de familiegroep.');return false;}
@@ -77,6 +77,7 @@
   };
 
   // Bestaande spellen koppelen aan de live score, met lokale fallback.
+  window.quickScore=async function(btn){ const inp=btn&&btn.previousElementSibling; if(!inp)return; const n=parseInt(inp.value,10); if(!n){return;} inp.value=''; await window.changeLiveScore(Math.max(-100,Math.min(100,n)),'handmatig'); };
   const originalToggleBingo=window.toggleBingo;
   window.toggleBingo=async function(i){
     const before=getList('bingo').includes(i); originalToggleBingo(i);
@@ -107,6 +108,8 @@
     get player(){ return state.player; },
     get group(){ return state.group; },
     get client(){ return state.client; },
+    async loadPlayers(){ if(!state.client||!state.group) return []; try{ const { data }=await state.client.from('game_players').select('id,display_name,score').eq('group_id',state.group.id).order('display_name'); return data||[]; }catch(e){ return []; } },
+    async awardPoints(playerId, points, reason){ if(!state.client) return null; const { data, error }=await state.client.rpc('award_points',{ p_player_id:playerId, p_points:Math.round(points||0), p_reason:reason||'spel' }); if(error){ console.error('awardPoints',error); return null; } return data; },
     async saveProgress(gameKey, patch){
       if(!state.client || !state.player || !state.group) return false;
       let existing=null;
