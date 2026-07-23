@@ -461,6 +461,7 @@ function renderDays(){
   <div class="daySlots">${["morning","afternoon","evening"].map(slot=>`<div class="daySlot">
    <div class="slotTitle"><span>${slotLabels[slot]}</span><span>${day[slot].length} gepland</span></div>
    <div class="slotItems">${day[slot].length?day[slot].map((id,ii)=>planItemHTML(id,di,slot,ii)).join(""):`<div class="emptySlot">Nog niets gepland</div>`}</div>
+   <button class="slotAddBtn" onclick="addToSlot(${di},'${slot}')" style="width:100%;margin-top:6px;border:1px dashed #dfe9e7;background:none;border-radius:10px;padding:8px;color:#0f7887;font-weight:700;cursor:pointer">➕ activiteit toevoegen</button>
   </div>`).join("")}</div></article>`).join("");
  updatePlannerSummary();
 }
@@ -504,6 +505,14 @@ function loadTemplate(name){
  t.forEach((slots,di)=>slots.forEach((names,si)=>names.forEach(n=>{const a=activityByName(n);if(a)plannerState[di][["morning","afternoon","evening"][si]].push(a.id)})));
  savePlanner();renderDays();
 }
+ window.addToSlot=function(di,slot){
+  const opts=A.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(a=>'<option value="'+a.id+'">'+(a.icon||'')+' '+a.name+'</option>').join('');
+  const ov=document.createElement('div'); ov.id='slotAddOverlay'; ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px';
+  ov.innerHTML='<div style="background:#fff;border-radius:16px;padding:16px;max-width:420px;width:100%"><h3 style="margin:0 0 10px">Activiteit toevoegen</h3><select id="slotAddSel" style="width:100%;padding:11px;border-radius:10px;border:1px solid #dfe9e7;font-size:15px">'+opts+'</select><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button onclick="document.getElementById(\'slotAddOverlay\').remove()" style="padding:10px 14px;border:0;border-radius:12px;background:#eef4f4;font-weight:700;cursor:pointer">Annuleren</button><button onclick="doAddToSlot('+di+',\''+slot+'\')" style="padding:10px 14px;border:0;border-radius:12px;background:#0f7887;color:#fff;font-weight:700;cursor:pointer">Toevoegen</button></div></div>';
+  ov.onclick=function(e){ if(e.target===ov) ov.remove(); };
+  document.body.appendChild(ov);
+ };
+ window.doAddToSlot=function(di,slot){ const sel=document.getElementById('slotAddSel'); if(sel&&sel.value){ plannerState[di][slot].push(sel.value); savePlanner(); renderDays(); } const ov=document.getElementById('slotAddOverlay'); if(ov) ov.remove(); };
 function initPlanner(){
  if(!document.getElementById("planner"))return;
  const dd=document.getElementById("dialogDay");dd.innerHTML=Array.from({length:10},(_,i)=>`<option value="${i}">Dag ${i+1}</option>`).join("");
@@ -513,6 +522,7 @@ function initPlanner(){
  document.getElementById("cancelAdd").onclick=()=>document.getElementById("addDialog").classList.remove("open");
  document.getElementById("confirmAdd").onclick=()=>{addActivityTo(+dd.value,document.getElementById("dialogSlot").value,pendingActivityId);document.getElementById("addDialog").classList.remove("open")};
  document.getElementById("applyTemplate").onclick=()=>{const n=document.getElementById("templateSelect").value;if(n)loadTemplate(n)};
+ document.getElementById("templateSelect").onchange=()=>{const n=document.getElementById("templateSelect").value;if(n)loadTemplate(n)};
  document.getElementById("resetPlanner").onclick=()=>{if(confirm("Hele planning leegmaken?")){plannerState=makeEmptyPlanner();savePlanner();renderDays()}};
  document.getElementById("printPlanner").onclick=()=>window.print();
 }
